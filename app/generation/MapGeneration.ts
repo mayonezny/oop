@@ -40,7 +40,7 @@ export function generateMap(
             //     default:
             //         throw new Error('Unknown cell type');
             // }
-            cell = new GrassCell(x, y, textures.grass, 'grass', 'E');
+            cell = new GrassCell(x, y, [textures.grass, textures.water][Math.floor(Math.random() * 2)], 'grass', 'E');
 
             row.push(cell);
         }
