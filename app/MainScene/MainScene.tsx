@@ -2,6 +2,7 @@ import { Application, Assets, Container, Renderer, Texture } from 'pixi.js';
 import React, { useEffect, useRef, useState } from 'react';
 
 import { generateMap } from '~/generation/MapGeneration';
+import { loadTextures } from '~/generation/TexturesList';
 
 const MainScene: React.FC = () => {
   const pixiContainerRef = useRef<HTMLDivElement | null>(null);
@@ -15,20 +16,7 @@ const MainScene: React.FC = () => {
     height: 0,
   });
   // Асинхронная функция загрузки текстур
-  const loadTextures = async (): Promise<Record<string, Texture>> => {
-    return {
-      grass: await Assets.load('/assets/img/darkgrass.png'),
-      water: await Assets.load('/assets/img/sea.png'),
-      grassRoadNSOUTH: await Assets.load('/assets/img/darkgrass+road_NSOUTH.png'),
-      grassRoadWEAST: await Assets.load('/assets/img/darkgrass+road_WEAST.png'),
-      grassRoadCornerF_S_T_E: await Assets.load('/assets/img/darkgrass+road_F-SOUTH-T-EAST.png'),
-      grassRoadCornerF_S_T_W: await Assets.load('/assets/img/darkgrass+road_F-SOUTH-T-WEST.png'),
-      grassRoadCornerF_N_T_W: await Assets.load('/assets/img/darkgrass+road_F-NORTH-T-WEST.png'),
-      grassRoadCornerF_N_T_E: await Assets.load('/assets/img/darkgrass+road_F-NORTH-T-EAST.png'),
-      grassRiverE: await Assets.load('/assets/img/darkgrass+river_EAST.png'),
-      grassRiverW: await Assets.load('/assets/img/darkgrass+river_WEST.png'),
-    };
-  };
+  
 
   // Основная инициализация сцены
   
