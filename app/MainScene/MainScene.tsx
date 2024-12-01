@@ -54,8 +54,8 @@ const MainScene: React.FC = () => {
       app.stage.addChild(mapContainer);
       mapContainerRef.current = mapContainer;
   
-      const mapWidth = 64;
-      const mapHeight = 64;
+      const mapWidth = 128;
+      const mapHeight = 128;
       const cellSize = 32;
       const map = generateMap(mapWidth, mapHeight, textures);
 
