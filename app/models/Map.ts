@@ -28,7 +28,7 @@ export class Map {
 
     // Генерация морей
     const seas = new Seas(
-      { small: 1, medium: 1, large: 1, ocean: 1 },
+      { small: 0, medium: 1, large: 3, ocean: 2 },
       this.width,
       this.height,
       this.textures.water // Текстура воды

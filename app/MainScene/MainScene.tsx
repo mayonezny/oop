@@ -1,13 +1,18 @@
-import { Application, Assets, Container, Renderer, Texture } from 'pixi.js';
+import { Application, Texture, Container } from 'pixi.js';
 import React, { useEffect, useRef, useState } from 'react';
 
 import { generateMap } from '~/generation/MapGeneration';
 import { loadTextures } from '~/generation/TexturesList';
 
+export let MAP_WIDTH = 128;
+export let MAP_HEIGHT = 128;
+export let CELL_SIZE = 32;
+
 const MainScene: React.FC = () => {
   const pixiContainerRef = useRef<HTMLDivElement | null>(null);
   const appRef = useRef<Application | null>(null);
   const mapContainerRef = useRef<Container | null>(null);
+  const mapRef = useRef<any[][]>([]); // Ссылка на карту
   const isDragging = useRef(false);
   const isInitialized = useRef(false);
   const lastMousePosition = useRef<{ x: number; y: number } | null>(null);
@@ -15,67 +20,59 @@ const MainScene: React.FC = () => {
     width: 0,
     height: 0,
   });
+
   // Асинхронная функция загрузки текстур
-  
-
-  // Основная инициализация сцены
-  
-    const initializeScene = async () => {
-      if (isInitialized.current) {
-        console.log('Инициализация пропущена');
-        return;
-      }
-      isInitialized.current = true;
-
-      const textures = await loadTextures();
-  
-      const headerHeight = window.innerWidth < 768 ? 50 : 90;
-      setCanvasSize({
-        width: window.innerWidth,
-        height: window.innerHeight - headerHeight,
-      });
-  
-      const app = new Application<Renderer<HTMLCanvasElement>>();
-      await app.init({
-        width: window.innerWidth,
-        height: window.innerHeight - headerHeight,
-        backgroundColor: 0x1099bb,
-        antialias: true,
-      });
-      appRef.current = app;
-  
-      if (pixiContainerRef.current && app.renderer.view.canvas) {
-        pixiContainerRef.current.appendChild(app.renderer.view.canvas as HTMLCanvasElement);
-    } else {
-        console.error('Failed to append PIXI canvas: view is undefined.');
+  const initializeScene = async () => {
+    if (isInitialized.current) {
+      console.log('Инициализация пропущена');
+      return;
     }
-  
-      const mapContainer = new Container();
-      app.stage.addChild(mapContainer);
-      mapContainerRef.current = mapContainer;
-  
-      const mapWidth = 128;
-      const mapHeight = 128;
-      const cellSize = 32;
-      const map = generateMap(mapWidth, mapHeight, textures);
+    isInitialized.current = true;
 
-      
-    
-      map.forEach((row) => {
-        row.forEach((cell) => {
-          const sprite = cell.sprite;
-          sprite.x = cell.x * cellSize;
-          sprite.y = cell.y * cellSize;
-          sprite.width = cellSize;
-          sprite.height = cellSize;
-          mapContainer.addChild(sprite);
-        });
+    const textures = await loadTextures();
+
+    const headerHeight = window.innerWidth < 768 ? 50 : 90;
+    setCanvasSize({
+      width: window.innerWidth,
+      height: window.innerHeight - headerHeight,
+    });
+
+    const app = new Application();
+    await app.init({
+      width: window.innerWidth,
+      height: window.innerHeight - headerHeight,
+      backgroundColor: 0x1099bb,
+      antialias: true,
+    });
+    appRef.current = app;
+
+    if (pixiContainerRef.current && app.renderer.view.canvas) {
+      pixiContainerRef.current.appendChild(app.renderer.view.canvas as HTMLCanvasElement);
+    } else {
+      console.error('Failed to append PIXI canvas: view is undefined.');
+    }
+
+    const mapContainer = new Container();
+    app.stage.addChild(mapContainer);
+    mapContainerRef.current = mapContainer;
+
+    const map = generateMap(MAP_WIDTH, MAP_HEIGHT, textures);
+    mapRef.current = map; // Сохраняем ссылку на карту
+
+    map.forEach((row) => {
+      row.forEach((cell) => {
+        const sprite = cell.sprite;
+        sprite.x = cell.x * CELL_SIZE;
+        sprite.y = cell.y * CELL_SIZE;
+        sprite.width = CELL_SIZE;
+        sprite.height = CELL_SIZE;
+        mapContainer.addChild(sprite);
       });
-  
-      setupMouseHandlers(mapContainer);
-    };
-  
-  
+    });
+
+    setupMouseHandlers(mapContainer);
+    setupKeyboardHandlers(mapContainer);
+  };
 
   const setupMouseHandlers = (mapContainer: Container) => {
     const onMouseDown = (event: MouseEvent) => {
@@ -105,31 +102,104 @@ const MainScene: React.FC = () => {
       }
     };
 
+    const onWheelChange = (event: WheelEvent) => {
+      event.preventDefault();
+      let newCellSize = CELL_SIZE;
+      
+      // Получаем позицию курсора относительно карты
+      const mouseX = event.clientX;
+      const mouseY = event.clientY;
+      const mouseWorldX = (mouseX - mapContainer.x) / CELL_SIZE;
+      const mouseWorldY = (mouseY - mapContainer.y) / CELL_SIZE;
+
+      if (event.deltaY < 0) {
+        if (newCellSize < 64) {
+          newCellSize += 8;
+        }
+      } else if (event.deltaY > 0) {
+        if (newCellSize > 16) {
+          newCellSize -= 8;
+        }
+      }
+
+      if (newCellSize !== CELL_SIZE) {
+        // Обновляем CELL_SIZE
+        const scaleRatio = newCellSize / CELL_SIZE; // Коэффициент масштабирования
+
+        // Обновляем размер клетки
+        CELL_SIZE = newCellSize;
+
+        // Обновляем размеры и положение всех спрайтов
+        mapRef.current.forEach((row) => {
+          row.forEach((cell) => {
+            const sprite = cell.sprite;
+            sprite.x = cell.x * CELL_SIZE;
+            sprite.y = cell.y * CELL_SIZE;
+            sprite.width = CELL_SIZE;
+            sprite.height = CELL_SIZE;
+          });
+        });
+
+        // Перемещаем карту так, чтобы курсор остался в центре
+        mapContainer.x -= (mouseX - mapContainer.x) * (scaleRatio - 1);
+        mapContainer.y -= (mouseY - mapContainer.y) * (scaleRatio - 1);
+      }
+    };
+
     window.addEventListener('mousedown', onMouseDown);
     window.addEventListener('mousemove', onMouseMove);
     window.addEventListener('mouseup', onMouseUp);
+    window.addEventListener('wheel', onWheelChange, { passive: false });
 
     return () => {
       window.removeEventListener('mousedown', onMouseDown);
       window.removeEventListener('mousemove', onMouseMove);
       window.removeEventListener('mouseup', onMouseUp);
+      window.removeEventListener('wheel', onWheelChange);
     };
   };
 
-//   useEffect(() => {
-//     console.log('Pixi.js App:', appRef.current);
-//     console.log('Pixi Container:', pixiContainerRef.current);
-// }, []);
+  const setupKeyboardHandlers = (mapContainer: Container) => {
+    const onKeyDown = (event: KeyboardEvent) => {
 
-useEffect(() => {
-  initializeScene();
-  
-  return () => {
-    if (appRef.current) {
-      appRef.current.destroy(true, { children: true, texture: true });
-    }
+      const moveSpeed = 1; // Скорость перемещения камеры
+      const scaleFactor = CELL_SIZE;
+      event.preventDefault();
+      switch (event.key) {
+        case 'ArrowUp':
+          mapContainer.y += moveSpeed * scaleFactor;
+          break;
+        case 'ArrowDown':
+          mapContainer.y -= moveSpeed * scaleFactor;
+          break;
+        case 'ArrowLeft':
+          mapContainer.x += moveSpeed * scaleFactor;
+          break;
+        case 'ArrowRight':
+          mapContainer.x -= moveSpeed * scaleFactor;
+          break;
+        default:
+          break;
+      }
+    };
+
+    window.addEventListener('keydown', onKeyDown);
+
+    return () => {
+      window.removeEventListener('keydown', onKeyDown);
+    };
   };
-}, []);
+
+  useEffect(() => {
+    initializeScene();
+    
+    return () => {
+      if (appRef.current) {
+        appRef.current.destroy(true, { children: true, texture: true });
+      }
+    };
+  }, []);
+
 
   return (
     <div
