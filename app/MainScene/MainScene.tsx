@@ -3,6 +3,7 @@ import React, { useEffect, useRef, useState } from 'react';
 
 import { generateMap } from '~/generation/MapGeneration';
 import { loadTextures } from '~/generation/TexturesList';
+import { RoadCell, RoadCornerCell } from '~/models/Cell';
 
 export let MAP_WIDTH = 128;
 export let MAP_HEIGHT = 128;
@@ -61,12 +62,15 @@ const MainScene: React.FC = () => {
 
     map.forEach((row) => {
       row.forEach((cell) => {
+        
         const sprite = cell.sprite;
+
         sprite.x = cell.x * CELL_SIZE;
         sprite.y = cell.y * CELL_SIZE;
         sprite.width = CELL_SIZE;
         sprite.height = CELL_SIZE;
-        mapContainer.addChild(sprite);
+        cell.render(mapContainer);
+        
       });
     });
 

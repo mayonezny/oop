@@ -21,7 +21,6 @@ export class Seas {
     for (const size in this.sizes) {
         
       const count = this.sizes[size as SeaSize];
-      console.log(count);
       for (let i = 0; i < count; i++) {
         const sea = new Sea(size as SeaSize, this.width, this.height, this.waterTexture);
         sea.generateSeas(map);
@@ -57,10 +56,10 @@ export class Sea {
     }
   }
   generateSeas(map: Cell<Direction, any>[][]) {
-  
+    
     // Создаем ядро моря
     const seaCells = this.generateSeaCore(map, this.centerX, this.centerY, this.getRadius() + 3, this.getRadius());
-    console.log('ivanOnline');
+    console.log(this.waterTexture);
     // Расширяем море
     this.expandSea(map, seaCells, 1); // Увеличить море с "расширением" 10 шагов
   }
@@ -77,7 +76,7 @@ export class Sea {
   
         // Проверка, попадает ли клетка в эллипс
         if (distance <= 1 && !(map[x][y] instanceof WaterCell)) {
-          map[x][y] = new WaterCell(x, y, this.waterTexture, "ocean", "none");
+          map[x][y] = new WaterCell(x, y, this.waterTexture, "ocean", "none", "empty");
           seaCells.push({ x, y });
         }
       }
@@ -111,7 +110,7 @@ export class Sea {
           if (nx >= 0 && nx < map[0].length && ny >= 0 && ny < map.length && !(map[ny][nx] instanceof WaterCell) && !visited.has(`${nx},${ny}`)) {
             if (Math.random() < 0.5) {
               // Создаем новую клетку моря
-              map[nx][ny] = new WaterCell(nx, ny, this.waterTexture, "ocean", "none");
+              map[nx][ny] = new WaterCell(nx, ny, this.waterTexture, "ocean", "none", "empty");
               newSeaCells.push({ x: nx, y: ny });
               visited.add(`${nx},${ny}`); // Добавляем в обработанные
             }

@@ -11,14 +11,17 @@ export type WaterTypes = 'ocean' | 'river';
 export type RoadTypes = 'grassN' | 'grassW';
 export type RoadCornerTypes = 'grassNE' | 'grassNW' | 'grassSE' | 'grassSW';
 
+export type ObjectTypes = 'empty' | 'player' | 'city' | 'item' | 'cheeseMadness';
+
 export abstract class Cell<FacingType, TileType> {
   x: number;
   y: number;
   sprite: Sprite;
   type: TileType;
   facing: FacingType;
+  object: ObjectTypes;
 
-  constructor(x: number, y: number, texture: Texture, type: TileType, facing: FacingType) {
+  constructor(x: number, y: number, texture: Texture, type: TileType, facing: FacingType, object: ObjectTypes) {
     this.x = x;
     this.y = y;
     this.sprite = new Sprite(texture);
@@ -26,6 +29,7 @@ export abstract class Cell<FacingType, TileType> {
     this.sprite.y = y;
     this.type = type;
     this.facing = facing;
+    this.object = object;
   }
 
   abstract render(container: Container): void;
@@ -50,8 +54,8 @@ export abstract class Cell<FacingType, TileType> {
 }
 
 export class GrassCell extends Cell<Direction, GrassTypes> {
-  constructor(x: number, y: number, texture: Texture, type: GrassTypes, facing: Direction) {
-    super(x, y, texture, type, facing);
+  constructor(x: number, y: number, texture: Texture, type: GrassTypes, facing: Direction, object: ObjectTypes) {
+    super(x, y, texture, type, facing, object);
   }
 
   render(container: Container): void {
@@ -60,8 +64,8 @@ export class GrassCell extends Cell<Direction, GrassTypes> {
 }
 
 export class WaterCell extends Cell<Direction, WaterTypes> {
-  constructor(x: number, y: number, texture: Texture, type: WaterTypes, facing: Direction) {
-    super(x, y, texture, type, facing);
+  constructor(x: number, y: number, texture: Texture, type: WaterTypes, facing: Direction, object: ObjectTypes) {
+    super(x, y, texture, type, facing, object);
   }
 
   render(container: Container): void {
@@ -70,20 +74,25 @@ export class WaterCell extends Cell<Direction, WaterTypes> {
 }
 
 export class RoadCell<Direction, RoadTypes> extends Cell<Direction, RoadTypes> {
-    constructor(x: number, y: number, texture: Texture, type: RoadTypes, facing: Direction) {
-      super(x, y, texture, type, facing);
+    constructor(x: number, y: number, texture: Texture, type: RoadTypes, facing: Direction, object: ObjectTypes) {
+      super(x, y, texture, type, facing, object);
     }
   
     render(container: Container): void {
       container.addChild(this.sprite);
+
     }
   }
 
 export class RoadCornerCell extends RoadCell<CornerDirection, RoadCornerTypes> {
 
-  constructor(x: number, y: number, texture: Texture, type: RoadCornerTypes, facing: CornerDirection) {
-    super(x, y, texture, type, facing); // Временно указываем 'north', так как оно переопределяется
-    this.facing = facing; // Переопределяем `facing` для углов
+  constructor(x: number, y: number, texture: Texture, type: RoadCornerTypes, facing: CornerDirection, object: ObjectTypes) {
+    super(x, y, texture, type, facing, object); // Временно указываем 'north', так как оно переопределяется
+     // Переопределяем `facing` для углов
+    this.facing = facing;
+  }
+  render(container: Container): void {
+    container.addChild(this.sprite);
   }
 }
 
