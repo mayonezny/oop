@@ -5,7 +5,7 @@ import { generateMap } from '~/generation/MapGeneration';
 import { loadTextures } from '~/AssetLoad/TexturesList';
 import { RoadCell, RoadCornerCell } from '~/models/Tiles/Cell';
 import { loadHeroAssets } from '~/AssetLoad/HeroesList';
-import { Hero, Tank } from '~/models/Heroes/Hero';
+import { Assasin, Hero, Tank } from '~/models/Heroes/Hero';
 
 export let MAP_WIDTH = 128;
 export let MAP_HEIGHT = 128;
@@ -78,12 +78,14 @@ const MainScene: React.FC = () => {
       });
     });
 
-    const hachim = new Tank(10, 10, 'hachim', heroAssets.hachim);
+    const hachim = new Tank(10, 10, 'Hachim the Solaris', 'VeryFatTank', heroAssets.hachim, map);
+    const lexanKrivo = new Assasin(1, 1, 'Lex Krivov the Dark Assasin', 'DaggerMaster', heroAssets.lexKrivov, map);
     hachim.render(mapContainer);
+    lexanKrivo.render(mapContainer);
 
-    setupMouseHandlers(mapContainer, hachim);
+    setupMouseHandlers(mapContainer, lexanKrivo);
     setupKeyboardHandlers(mapContainer);
-    setupKeyboardControls(hachim);
+    setupKeyboardControls(lexanKrivo);
   };
 
   const setupMouseHandlers = (mapContainer: Container, hero: Hero) => {
