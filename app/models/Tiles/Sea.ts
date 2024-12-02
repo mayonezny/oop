@@ -1,5 +1,5 @@
 import { Texture } from 'pixi.js';
-import { WaterCell, Direction, Cell } from '../models/Cell';
+import { WaterCell, Direction, Cell } from './Cell';
 
 type SeaSize = 'small' | 'medium' | 'large' | 'ocean';
 

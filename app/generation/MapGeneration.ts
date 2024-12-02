@@ -1,6 +1,6 @@
 
 import { Texture } from 'pixi.js';
-import { GrassCell, WaterCell, RoadCell, RoadCornerCell, Direction, GrassTypes, WaterTypes, RoadTypes, RoadCornerTypes, Cell, CornerDirection } from '../models/Cell';
+import { GrassCell, WaterCell, RoadCell, RoadCornerCell, Direction, GrassTypes, WaterTypes, RoadTypes, RoadCornerTypes, Cell, CornerDirection } from '../models/Tiles/Cell';
 import { Map } from '../models/Map';
 // Типы для генерации карты
 type CellTypes = 'grass' | 'water' | 'road' | 'roadCorner';

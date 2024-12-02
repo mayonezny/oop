@@ -2,8 +2,8 @@ import { Application, Texture, Container } from 'pixi.js';
 import React, { useEffect, useRef, useState } from 'react';
 
 import { generateMap } from '~/generation/MapGeneration';
-import { loadTextures } from '~/generation/TexturesList';
-import { RoadCell, RoadCornerCell } from '~/models/Cell';
+import { loadTextures } from '~/AssetLoad/TexturesList';
+import { RoadCell, RoadCornerCell } from '~/models/Tiles/Cell';
 
 export let MAP_WIDTH = 128;
 export let MAP_HEIGHT = 128;

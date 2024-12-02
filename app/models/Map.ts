@@ -1,7 +1,7 @@
 import { Texture } from 'pixi.js';
-import { Cell, Direction, GrassCell, WaterCell } from './Cell';
-import { Seas } from './Sea';
-import { Road } from './Road';
+import { Cell, Direction, GrassCell, WaterCell } from './Tiles/Cell';
+import { Seas } from './Tiles/Sea';
+import { Road } from './Tiles/Road';
 import { MAP_HEIGHT, MAP_WIDTH } from '~/MainScene/MainScene';
 
 export class Map {
