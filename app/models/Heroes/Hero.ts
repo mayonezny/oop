@@ -1,6 +1,7 @@
 import { Container, Sprite, Texture } from 'pixi.js';
+import { CELL_SIZE } from '~/MainScene/MainScene';
 
-abstract class Hero {
+export abstract class Hero {
   x: number;
   y: number;
   name: string;
@@ -44,20 +45,31 @@ abstract class Hero {
 
   // Рендеринг героя на сцене
   render(container: Container): void {
+    this.sprite.x = (this.x * CELL_SIZE) / 2;
+    this.sprite.y = (this.y * CELL_SIZE) / 2;
+    this.sprite.width = CELL_SIZE;
+    this.sprite.height = CELL_SIZE * 2;
     container.addChild(this.sprite);
   }
 
-  // Перемещение героя
+  updateSize(cellSize: number): void {
+    this.sprite.x = (this.x * cellSize) / 2;
+    this.sprite.y = (this.y * cellSize) / 2;
+    this.sprite.width = cellSize;
+    this.sprite.height = cellSize * 2;
+  }
+
+  // Перемещение героя 
   move(dx: number, dy: number): void {
     this.x += dx;
     this.y += dy;
-    this.sprite.x = this.x;
-    this.sprite.y = this.y;
+    this.sprite.x = (this.x * CELL_SIZE) / 2;
+    this.sprite.y = (this.y * CELL_SIZE) / 2;
     console.log(`${this.name} переместился на (${this.x}, ${this.y})`);
   }
 }
 
-class Tank extends Hero {
+export class Tank extends Hero {
     constructor(x: number, y: number, name: string, texture: Texture) {
       super(x, y, name, texture, 'fatman', 200, 5, 'zhir');
     }

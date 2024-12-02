@@ -4,6 +4,8 @@ import React, { useEffect, useRef, useState } from 'react';
 import { generateMap } from '~/generation/MapGeneration';
 import { loadTextures } from '~/AssetLoad/TexturesList';
 import { RoadCell, RoadCornerCell } from '~/models/Tiles/Cell';
+import { loadHeroAssets } from '~/AssetLoad/HeroesList';
+import { Hero, Tank } from '~/models/Heroes/Hero';
 
 export let MAP_WIDTH = 128;
 export let MAP_HEIGHT = 128;
@@ -31,6 +33,8 @@ const MainScene: React.FC = () => {
     isInitialized.current = true;
 
     const textures = await loadTextures();
+
+    const heroAssets = await loadHeroAssets();
 
     const headerHeight = window.innerWidth < 768 ? 50 : 90;
     setCanvasSize({
@@ -74,11 +78,15 @@ const MainScene: React.FC = () => {
       });
     });
 
-    setupMouseHandlers(mapContainer);
+    const hachim = new Tank(10, 10, 'hachim', heroAssets.hachim);
+    hachim.render(mapContainer);
+
+    setupMouseHandlers(mapContainer, hachim);
     setupKeyboardHandlers(mapContainer);
+    setupKeyboardControls(hachim);
   };
 
-  const setupMouseHandlers = (mapContainer: Container) => {
+  const setupMouseHandlers = (mapContainer: Container, hero: Hero) => {
     const onMouseDown = (event: MouseEvent) => {
       if (event.button === 1) {
         event.preventDefault();
@@ -143,10 +151,11 @@ const MainScene: React.FC = () => {
             sprite.height = CELL_SIZE;
           });
         });
-
+        resizeHero(hero);
+        
         // Перемещаем карту так, чтобы курсор остался в центре
         mapContainer.x -= (mouseX - mapContainer.x) * (scaleRatio - 1);
-        mapContainer.y -= (mouseY - mapContainer.y) * (scaleRatio - 1);
+        mapContainer.y -= (mouseY - mapContainer.y) * (scaleRatio - 1); 
       }
     };
 
@@ -193,6 +202,31 @@ const MainScene: React.FC = () => {
       window.removeEventListener('keydown', onKeyDown);
     };
   };
+
+  const setupKeyboardControls = (hero: Hero) => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      switch (event.key.toLowerCase()) {
+        case 'w': // Вверх
+          hero.move(0, -1);
+          break;
+        case 'a': // Влево
+          hero.move(-1, 0);
+          break;
+        case 's': // Вниз
+          hero.move(0, 1);
+          break;
+        case 'd': // Вправо
+          hero.move(1, 0);
+          break;
+      }
+    };
+  
+    // Добавляем обработчик событий
+    window.addEventListener('keydown', handleKeyDown);
+  };
+  const resizeHero = (hero: Hero) => {
+    hero.updateSize(CELL_SIZE);
+  }
 
   useEffect(() => {
     initializeScene();
