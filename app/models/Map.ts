@@ -47,6 +47,7 @@ export class Map {
         this.textures.grassRoadCornerF_S_T_W
     );
     road.generateRoad(this.map, { x: 12, y: 5 }, { x: 5, y: 60 });
+    road.generateRoad(this.map, { x: 126, y: 5 }, { x: 5, y: 120 });
     // В дальнейшем сюда добавятся генерация травы, дорог и других объектов
   }
 }

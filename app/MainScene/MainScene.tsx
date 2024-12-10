@@ -3,9 +3,10 @@ import React, { useEffect, useRef, useState } from 'react';
 
 import { generateMap } from '~/generation/MapGeneration';
 import { loadTextures } from '~/AssetLoad/TexturesList';
-import { RoadCell, RoadCornerCell } from '~/models/Tiles/Cell';
+import { Cell, RoadCell, RoadCornerCell, WaterCell } from '~/models/Tiles/Cell';
 import { loadHeroAssets } from '~/AssetLoad/HeroesList';
-import { Assasin, Hero, Tank } from '~/models/Heroes/Hero';
+import { Assasin, Hero, Tank, Warrior } from '~/models/Heroes/Hero';
+import { UnifiedDirection } from '~/models/Tiles/Road';
 
 export let MAP_WIDTH = 128;
 export let MAP_HEIGHT = 128;
@@ -77,18 +78,65 @@ const MainScene: React.FC = () => {
         
       });
     });
-
-    const hachim = new Tank(10, 10, 'Hachim the Solaris', 'VeryFatTank', heroAssets.hachim, map);
-    const lexanKrivo = new Assasin(1, 1, 'Lex Krivov the Dark Assasin', 'DaggerMaster', heroAssets.lexKrivov, map);
-    hachim.render(mapContainer);
-    lexanKrivo.render(mapContainer);
-
-    setupMouseHandlers(mapContainer, lexanKrivo);
+    const heroesContainer: Hero[] = [
+      new Tank(0, 0, 'Hachim the Solaris', 'VeryFatTank', heroAssets.hachim, map, mapContainer, 'AI'),
+      new Assasin(0, 0, 'Lex Krivov the Dark Assasin', 'DaggerMaster', heroAssets.lexKrivov, map, mapContainer, 'Player'),
+      new Warrior(0, 0, 'Boris Mayonezny, the defender of Provansal', 'MilitaryMan', heroAssets.main, map, mapContainer, 'AI')
+    ];
+    // const hachim = new Tank(10, 10, 'Hachim the Solaris', 'VeryFatTank', heroAssets.hachim, map, mapContainer, 'AI');
+    // const lexanKrivo = new Assasin(1, 1, 'Lex Krivov the Dark Assasin', 'DaggerMaster', heroAssets.lexKrivov, map, mapContainer, 'Player');
+    spawnHeroesRandomly(heroesContainer, map, MAP_WIDTH, MAP_HEIGHT);
+    setupMouseHandlers(mapContainer, heroesContainer);
     setupKeyboardHandlers(mapContainer);
-    setupKeyboardControls(lexanKrivo);
+    heroesContainer.forEach((ivan: Hero) => {
+      if(ivan.control === 'Player'){
+        setupKeyboardControls(ivan);
+      }
+      else{
+        
+        setInterval(() => {ivan.wander(MAP_WIDTH, MAP_HEIGHT);}, 1000);
+      }
+    })
+    //setupKeyboardControls(heroesContainer.forEach());
   };
 
-  const setupMouseHandlers = (mapContainer: Container, hero: Hero) => {
+  function spawnHeroesRandomly(
+    heroes: Hero[], 
+    map: Cell<UnifiedDirection, any>[][], 
+    widthSize: number, 
+    heightSize: number
+  ): void {
+    // Собираем список всех клеток
+    const availableCells: { x: number; y: number }[] = [];
+    for (let x = 0; x < widthSize; x++) {
+      for (let y = 0; y < heightSize; y++) {
+        if (map[x][y].object === 'empty' && !(map[x][y] instanceof WaterCell)) {
+          availableCells.push({ x, y });
+        }
+      }
+    }
+  
+    // Перемешиваем список
+    availableCells.sort(() => Math.random() - 0.5);
+  
+    // Спавним героев
+    heroes.forEach((hero) => {
+      if (availableCells.length > 0) {
+        const spawnCell = availableCells.pop(); // Берём последнюю свободную клетку
+        if (spawnCell) {
+          hero.x = spawnCell.x;
+          hero.y = spawnCell.y;
+          hero.render(hero['container']); // Рендерим героя на сцене
+          console.log(`${hero.name} заспавнен на (${hero.x}, ${hero.y})`);
+        }
+      } else {
+        console.warn(`Не удалось заспавнить ${hero.name}: нет свободных клеток`);
+      }
+    });
+  }
+  
+
+  const setupMouseHandlers = (mapContainer: Container, heroes: Hero[]) => {
     const onMouseDown = (event: MouseEvent) => {
       if (event.button === 1) {
         event.preventDefault();
@@ -119,7 +167,9 @@ const MainScene: React.FC = () => {
     const onWheelChange = (event: WheelEvent) => {
       event.preventDefault();
       let newCellSize = CELL_SIZE;
-      
+      heroes.forEach((ivan) => {
+        ivan.updateSize(CELL_SIZE);
+      });
       // Получаем позицию курсора относительно карты
       const mouseX = event.clientX;
       const mouseY = event.clientY;
@@ -153,7 +203,10 @@ const MainScene: React.FC = () => {
             sprite.height = CELL_SIZE;
           });
         });
-        resizeHero(hero);
+        heroes.forEach((hero: Hero) => {
+          resizeHero(hero);
+        });
+        
         
         // Перемещаем карту так, чтобы курсор остался в центре
         mapContainer.x -= (mouseX - mapContainer.x) * (scaleRatio - 1);
@@ -206,20 +259,26 @@ const MainScene: React.FC = () => {
   };
 
   const setupKeyboardControls = (hero: Hero) => {
+    
     const handleKeyDown = (event: KeyboardEvent) => {
-      switch (event.key.toLowerCase()) {
-        case 'w': // Вверх
-          hero.move(0, -1);
-          break;
-        case 'a': // Влево
-          hero.move(-1, 0);
-          break;
-        case 's': // Вниз
-          hero.move(0, 1);
-          break;
-        case 'd': // Вправо
-          hero.move(1, 0);
-          break;
+      if(hero.getHealth() <= 0){ console.log('алееееееее, ты умер'); }
+      else{
+
+      
+        switch (event.key.toLowerCase()) {
+          case 'w': // Вверх
+            hero.move(0, -1);
+            break;
+          case 'a': // Влево
+            hero.move(-1, 0);
+            break;
+          case 's': // Вниз
+            hero.move(0, 1);
+            break;
+          case 'd': // Вправо
+            hero.move(1, 0);
+            break;
+        }
       }
     };
   

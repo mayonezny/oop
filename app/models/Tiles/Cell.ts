@@ -1,6 +1,9 @@
 // models/Cell.ts
 
 import { Container, Sprite, Texture } from "pixi.js";
+import { Hero } from "../Heroes/Hero";
+import { Item } from "../Items/Item";
+import { CheeseMadness } from "../Items/CheeseMadness";
 
 
 export type Direction = 'N' | 'E' | 'S' | 'W' | 'none';
@@ -11,7 +14,7 @@ export type WaterTypes = 'ocean' | 'river';
 export type RoadTypes = 'grassN' | 'grassW';
 export type RoadCornerTypes = 'grassNE' | 'grassNW' | 'grassSE' | 'grassSW';
 
-export type ObjectTypes = 'empty' | 'player' | 'city' | 'item' | 'cheeseMadness';
+export type ObjectTypes = 'empty' | Hero | Item | CheeseMadness;
 
 export abstract class Cell<FacingType, TileType> {
   x: number;
