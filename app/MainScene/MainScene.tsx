@@ -7,6 +7,7 @@ import { Cell, RoadCell, RoadCornerCell, WaterCell } from '~/models/Tiles/Cell';
 import { loadHeroAssets } from '~/AssetLoad/HeroesList';
 import { Assasin, Hero, Tank, Warrior } from '~/models/Heroes/Hero';
 import { UnifiedDirection } from '~/models/Tiles/Road';
+import { loadItems } from '~/AssetLoad/ItemsList';
 
 export let MAP_WIDTH = 128;
 export let MAP_HEIGHT = 128;
@@ -36,6 +37,8 @@ const MainScene: React.FC = () => {
     const textures = await loadTextures();
 
     const heroAssets = await loadHeroAssets();
+
+    const itemAssets = await loadItems();
 
     const headerHeight = window.innerWidth < 768 ? 50 : 90;
     setCanvasSize({
@@ -85,7 +88,7 @@ const MainScene: React.FC = () => {
     ];
     // const hachim = new Tank(10, 10, 'Hachim the Solaris', 'VeryFatTank', heroAssets.hachim, map, mapContainer, 'AI');
     // const lexanKrivo = new Assasin(1, 1, 'Lex Krivov the Dark Assasin', 'DaggerMaster', heroAssets.lexKrivov, map, mapContainer, 'Player');
-    spawnHeroesRandomly(heroesContainer, map, MAP_WIDTH, MAP_HEIGHT);
+    spawnHeroesRandomly(heroesContainer, map, MAP_WIDTH, MAP_HEIGHT, mapContainer);
     setupMouseHandlers(mapContainer, heroesContainer);
     setupKeyboardHandlers(mapContainer);
     heroesContainer.forEach((ivan: Hero) => {
@@ -104,7 +107,8 @@ const MainScene: React.FC = () => {
     heroes: Hero[], 
     map: Cell<UnifiedDirection, any>[][], 
     widthSize: number, 
-    heightSize: number
+    heightSize: number,
+    mapContainer: Container
   ): void {
     // Собираем список всех клеток
     const availableCells: { x: number; y: number }[] = [];
@@ -126,8 +130,15 @@ const MainScene: React.FC = () => {
         if (spawnCell) {
           hero.x = spawnCell.x;
           hero.y = spawnCell.y;
+          
           hero.render(hero['container']); // Рендерим героя на сцене
           console.log(`${hero.name} заспавнен на (${hero.x}, ${hero.y})`);
+          if(hero.control === 'Player'){
+            
+            mapContainer.x -= hero.x * CELL_SIZE - 8 * CELL_SIZE;
+            mapContainer.y -= hero.y * CELL_SIZE - 8 * CELL_SIZE;
+            console.warn('alla', mapContainer.x, mapContainer.y);
+          }
         }
       } else {
         console.warn(`Не удалось заспавнить ${hero.name}: нет свободных клеток`);

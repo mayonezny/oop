@@ -1,5 +1,5 @@
 import { Container, Sprite, Texture } from 'pixi.js';
-import { CELL_SIZE } from '~/MainScene/MainScene';
+import { CELL_SIZE, MAP_HEIGHT, MAP_WIDTH } from '~/MainScene/MainScene';
 import { UnifiedDirection } from '../Tiles/Road';
 import { Cell, WaterCell } from '../Tiles/Cell';
 import { Item } from '../Items/Item';
@@ -90,11 +90,10 @@ export abstract class Hero {
   // Рендеринг героя на сцене
   render(container: Container): void {
     
-    
-
-    
     this.sprite.x = (this.x * CELL_SIZE);
     this.sprite.y = (this.y * CELL_SIZE);
+    
+     
     this.sprite.width = CELL_SIZE;
     this.sprite.height = CELL_SIZE * 2;
     container.addChild(this.sprite);
@@ -120,14 +119,27 @@ export abstract class Hero {
   move(dx: number, dy: number): void {
     if (this.isMoving) return;
   
+    // Проверяем, выходит ли целевая клетка за пределы карты
+    const targetX = this.x + dx;
+    const targetY = this.y + dy;
+    if (
+      targetX < 0 || 
+      targetX >= this.map.length || 
+      targetY < 0 || 
+      targetY >= this.map[0].length
+    ) {
+      console.log(`${this.name} пытается выйти за пределы карты!`);
+      return;
+    }
+  
     this.isMoving = true;
   
-    const targetX = (this.x + dx) * CELL_SIZE;
-    const targetY = (this.y + dy) * CELL_SIZE;
+    const targetPixelX = targetX * CELL_SIZE;
+    const targetPixelY = targetY * CELL_SIZE;
   
     const animate = () => {
-      const distanceX = targetX - this.sprite.x;
-      const distanceY = targetY - this.sprite.y;
+      const distanceX = targetPixelX - this.sprite.x;
+      const distanceY = targetPixelY - this.sprite.y;
   
       // Если достигли целевой клетки
       if (Math.abs(distanceX) < this.speed && Math.abs(distanceY) < this.speed) {
@@ -137,14 +149,14 @@ export abstract class Hero {
         }
   
         // Проверяем наличие врага в целевой клетке
-        const targetCell = this.map[this.x + dx][this.y + dy];
+        const targetCell = this.map[targetX][targetY];
         if (targetCell.object instanceof Hero && targetCell.object !== this) {
           console.log(`${this.name} атакует ${targetCell.object.name}!`);
           this.attack(targetCell.object);
         } else {
           // Перемещаем героя
-          this.x += dx;
-          this.y += dy;
+          this.x = targetX;
+          this.y = targetY;
   
           // Устанавливаем героя в новой клетке
           this.map[this.x][this.y].object = this;
@@ -153,7 +165,7 @@ export abstract class Hero {
         // Обновляем координаты спрайта
         this.sprite.x = this.x * CELL_SIZE;
         this.sprite.y = this.y * CELL_SIZE;
-  
+        this.updateCamera(this.x, this.y);
         this.isMoving = false;
         return;
       }
@@ -167,6 +179,7 @@ export abstract class Hero {
   
     animate();
   }
+  
   
   
   
@@ -235,7 +248,38 @@ wander(mapWidth: number, mapHeight: number): void {
   }
 }
 
-  
+updateCamera(heroX: number, heroY: number): void {
+  if (this.control === 'AI') return;
+
+  // Координаты персонажа в пикселях
+  const heroPixelX = heroX * CELL_SIZE;
+  const heroPixelY = heroY * CELL_SIZE;
+
+  // Размеры видимой области
+  const halfWidth = MAP_WIDTH / 2;
+  const halfHeight = MAP_HEIGHT / 2;
+
+  // Вычисляем границы камеры
+  const cameraLeft = -this.container.x;
+  const cameraRight = cameraLeft + MAP_WIDTH;
+  const cameraTop = -this.container.y;
+  const cameraBottom = cameraTop + MAP_HEIGHT;
+
+  // Если персонаж выходит за пределы камеры, сдвигаем контейнер
+  if (heroPixelX < cameraLeft) {
+    this.container.x = Math.min(0, -(heroPixelX - 420));
+  } else if (heroPixelX > cameraRight + 420) {
+    this.container.x = Math.max(-(MAP_WIDTH * CELL_SIZE - MAP_WIDTH), -(heroPixelX));
+  }
+
+  if (heroPixelY < cameraTop) {
+    this.container.y = Math.min(0, -(heroPixelY - 420));
+  } else if (heroPixelY > cameraBottom + 420) {
+    this.container.y = Math.max(-(MAP_HEIGHT * CELL_SIZE - MAP_HEIGHT), -(heroPixelY));
+  }
+}
+
+
 }
 
 export class Tank extends Hero {
@@ -248,7 +292,7 @@ export class Tank extends Hero {
 
 export class Assasin extends Hero {
     constructor(x: number, y: number, name: string, type: string, texture: Texture, map: Cell<UnifiedDirection, any>[][], container: Container, control: Control, startItem?: string) {
-      super(x, y, name, texture, map, type, 10, 100, 50, container, control, startItem);
+      super(x, y, name, texture, map, type, 6, 100, 50, container, control, startItem);
     }
     override attack(enemy: any): void {
     
